@@ -15,6 +15,23 @@ if (!exists("LOCAL_ENVIRONMENT__HELPERS_R", mode = "environment")) {
 			sort()
 		return(last(fileList))
 	}
+	linkLatestFile <- function(dir) {
+		file <- getLatestFile(dir)
+		stopifnot(!is.null(file))
+		latest <- file.path(dir, "latest")
+		system2(
+			command = "ln",
+			args = c(
+				"--symbolic",
+				"--relative",
+				"--force",
+				"--no-target-directory",
+				file,
+				latest
+			)
+		)
+		return(invisible(latest))
+	}
 
 	# manuallyCorrectedData <-
 	# 	tribble(
