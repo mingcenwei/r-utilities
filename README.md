@@ -1,2 +1,3 @@
-# r-utilities
-My R helper scripts 
+# R Utilities
+
+My R helper scripts
