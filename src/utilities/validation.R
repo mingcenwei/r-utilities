@@ -19,7 +19,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						stop(paste0("NA value: index ", index))
 					}
 				})
-			localScope$unreachable()
+			LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 		} else {
 			return(invisible(vector))
 		}
@@ -32,7 +32,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						stop(paste0("Not an integer or NA: index ", index))
 					}
 				})
-			localScope$unreachable()
+			LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 		} else {
 			return(invisible(as.integer(numbers)))
 		}
@@ -54,7 +54,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						))
 					}
 				})
-			localScope$unreachable()
+			LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 		} else {
 			return(invisible(numbers))
 		}
@@ -76,7 +76,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						))
 					}
 				})
-			localScope$unreachable()
+			LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 		} else {
 			return(invisible(numbers))
 		}
@@ -89,7 +89,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						stop(paste0("Not in enum or NA: index ", index))
 					}
 				})
-			localScope$unreachable()
+			LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 		} else {
 			return(invisible(vector))
 		}
@@ -102,7 +102,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						stop(paste0("Wrong pattern: index ", index))
 					}
 				})
-			localScope$unreachable()
+			LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 		} else {
 			return(invisible(texts))
 		}
@@ -151,7 +151,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 							stop(paste0("Not identical: index ", index))
 						}
 					})
-				localScope$unreachable()
+				LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 			}
 		} else {
 			return(invisible(vector))
@@ -175,7 +175,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						stop(paste0("Not equal to sequence: index ", index))
 					}
 				})
-			localScope$unreachable()
+			LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 		} else {
 			if (intSequence) {
 				return(invisible(as.integer(numbers)))
@@ -205,7 +205,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 							))
 						}
 					}
-					localScope$unreachable()
+					LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 				} else if (isTRUE(decreasing) &&
 						   isFALSE(nonStrict) &&
 						   !all(vectorWithoutNa[1L:(numOfValues - 1L)] >
@@ -220,7 +220,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 							))
 						}
 					}
-					localScope$unreachable()
+					LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 				} else if (isFALSE(decreasing) &&
 						   isTRUE(nonStrict) &&
 						   !all(vectorWithoutNa[1L:(numOfValues - 1L)] <=
@@ -235,7 +235,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 							))
 						}
 					}
-					localScope$unreachable()
+					LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 				} else if (isTRUE(decreasing) &&
 						   isTRUE(nonStrict) &&
 						   !all(vectorWithoutNa[1L:(numOfValues - 1L)] >=
@@ -250,7 +250,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 							))
 						}
 					}
-					localScope$unreachable()
+					LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
 				}
 			}
 			return(invisible(vector))
