@@ -1,0 +1,288 @@
+---
+title: "Data Preprocessing - Template"
+output: html_notebook
+---
+
+```{r setup}
+remove(list = objects(all.names = TRUE))
+
+library(zeallot)
+library(magrittr)
+library(tidyverse)
+```
+
+```{r source-scripts}
+projectSource <- (function() {
+	projectRoot <- rprojroot::find_rstudio_root_file()
+	projectSource <- function(relativePath) {
+		source(file.path(projectRoot, relativePath))
+	}
+	return(projectSource)
+})()
+projectSource("src/utilities/index.R")
+```
+
+```{r import-data}
+for (data in c("user-info", "pre", "middle", "post", "follow-up")) {
+	load(file.path(questionnaireExportDir, paste0(data, ".RData")))
+}
+
+common_rawColumnNames <- c("questionnaireId",
+						   "timestamp",
+						   "duration",
+						   "sourcePlatform",
+						   "sourceDetails",
+						   "sourceIp")
+common_rawColumnTypes <- c("numeric",
+						   rep_len("text", 5L))
+stopifnot(length(common_rawColumnNames) == length(common_rawColumnTypes))
+
+rawColumnNames <- c(
+	common_rawColumnNames,
+	"name",
+	"phoneNumber",
+	"courseId",
+	paste("sci", 1L:8L, sep = "_"),
+	paste("isi", 1L:7L, sep = "_"),
+	paste("psqi", c(
+		"1_1", "1_2", "2", "4_1", "4_2",
+		paste("5", 1L:10L, sep = "_"),
+		"3_1", "3_2"
+	), sep = "_"),
+	paste("dbas", 1L:16L, sep = "_"),
+	paste("ess", 1L:8L, sep = "_"),
+	paste("phq", 1L:9L, sep = "_"),
+	paste("gad", 1L:7L, sep = "_")
+)
+rawColumnTypes <- c(
+	common_rawColumnTypes,
+	rep_len("text", 3L),
+	rep_len("numeric", 8L + 7L),
+	rep_len("text", 5L),
+	rep_len("numeric", 9L),
+	rep_len("text", 1L + 2L),
+	rep_len("numeric", 16L + 8L + 9L + 7L)
+)
+stopifnot(length(rawColumnNames) == length(rawColumnTypes))
+
+rawScoresDataFrame <-
+	readxl::read_xlsx(
+		path = file.path(
+			getLatestFile(questionnaireDataDir),
+			"睡眠状况.xlsx"
+		),
+		sheet = 1,
+		col_names = c(
+			rawColumnNames,
+			"temp__totalScore"
+		),
+		col_types = c(
+			rawColumnTypes,
+			"numeric"
+		),
+		trim_ws = TRUE,
+		skip = 1L
+	) %>%
+	relocate(psqi_3_1, psqi_3_2, .after = psqi_2) %>%
+	select(-starts_with("temp__")) %>%
+	mutate(across(
+		.cols = where(is.character),
+		.fns = ~ if_else(. == "(空)", NA_character_, .)
+	)) %>%
+	mutate(questionnaire = "睡眠状况")
+```
+
+```{r validate-data}
+validatedDataFrame <-
+	rawScoresDataFrame %>%
+	mutate(
+		questionnaireId = questionnaireId %>%
+			notNa() %>%
+			allIntegersOrNa() %>%
+			inClosedRangeOrNa(lower = 0L) %>%
+			# allInOrderOrNa(),
+			identity(),
+		timestamp = parse_datetime(timestamp,
+								   format = "%Y/%m/%d %H:%M:%S",
+								   trim_ws = TRUE,
+								   locale = locale(tz = timeZone)) %>%
+			notNa() %>%
+			inClosedRangeOrNa(
+				lower = parse_datetime("2021-04-10", locale = locale(tz = timeZone)),
+				upper = Sys.time()
+			) %>%
+			# allInOrderOrNa(nonStrict = TRUE),
+			identity(),
+		duration = duration %>%
+			notNa() %>%
+			allPatternOrNa("^\\d+秒$") %>%
+			str_extract("^\\d+") %>%
+			notNa() %>%
+			allIntegersOrNa() %>%
+			inClosedRangeOrNa(lower = 1L),
+		across(matches(r"(^sci_\d+$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allIntegersOrNa() %>%
+				inClosedRangeOrNa(0L, 4L)
+		}),
+		sci_total = across(matches(r"(^sci_\d+$)")) %>% rowSums(),
+		across(matches(r"(^isi_\d+$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allIntegersOrNa() %>%
+				inClosedRangeOrNa(0L, 4L)
+		}),
+		isi_total = across(matches(r"(^isi_\d+$)")) %>% rowSums(),
+		across(matches(r"(^dbas_\d+$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allIntegersOrNa() %>%
+				inClosedRangeOrNa(1L, 5L)
+		}),
+		dbas_total = across(matches(r"(^dbas_\d+$)")) %>% rowSums(),
+		across(matches(r"(^ess_\d+$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allIntegersOrNa() %>%
+				subtract(1L) %>%
+				inClosedRangeOrNa(0L, 3L)
+		}),
+		ess_total = across(matches(r"(^ess_\d+$)")) %>% rowSums(),
+		across(matches(r"(^phq_\d+$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allIntegersOrNa() %>%
+				inClosedRangeOrNa(0L, 3L)
+		}),
+		phq_total = across(matches(r"(^phq_\d+$)")) %>% rowSums(),
+		across(matches(r"(^gad_\d+$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allIntegersOrNa() %>%
+				inClosedRangeOrNa(0L, 3L)
+		}),
+		gad_total = across(matches(r"(^gad_\d+$)")) %>% rowSums(),
+		across(matches(r"(^psqi_[134]_1$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allPatternOrNa(r"(^\d{2}$)") %>%
+				as.integer() %>%
+				inClosedRangeOrNa(0L, 23L)
+		}),
+		across(matches(r"(^psqi_[134]_2$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allPatternOrNa(r"(^\d{2}$)") %>%
+				as.integer() %>%
+				inClosedRangeOrNa(0L, 59L)
+		}),
+		psqi_1 = lubridate::period(hour = psqi_1_1, minute = psqi_1_2),
+		psqi_2 = psqi_2 %>%
+			notNa() %>%
+			allIntegersOrNa() %>%
+			inClosedRangeOrNa(0L) %>%
+			lubridate::minutes(),
+		psqi_3 = lubridate::period(hour = psqi_3_1, minute = psqi_3_2),
+		psqi_4 = lubridate::period(hour = psqi_4_1, minute = psqi_4_2),
+		across(matches(r"(^psqi_5_[1-9]$)"), function(column) {
+			column %>%
+				notNa() %>%
+				allIntegersOrNa() %>%
+				subtract(1L) %>%
+				inClosedRangeOrNa(0L, 3L)
+		}),
+		# psqi_component_2 = .bincode(psqi_2, c(-Inf, 15L, 30L, 60L, +Inf)) -
+		# 	1L + psqi_5_1,
+		# psqi_component_2 = .bincode(
+		# 	psqi_component_2,
+		# 	c(0L, 0L, 2L, 4L, 6L),
+		# 	include.lowest = TRUE
+		# ) - 1L
+	) %>%
+	relocate(sci_total, .after = matches(r"(^sci_\d+$)")) %>%
+	relocate(isi_total, .after = matches(r"(^isi_\d+$)")) %>%
+	relocate(dbas_total, .after = matches(r"(^dbas_\d+$)")) %>%
+	relocate(ess_total, .after = matches(r"(^ess_\d+$)")) %>%
+	relocate(phq_total, .after = matches(r"(^phq_\d+$)")) %>%
+	relocate(gad_total, .after = matches(r"(^gad_\d+$)")) %>%
+	relocate(
+		psqi_1, psqi_2, psqi_3, psqi_4,
+		matches(r"(^psqi_5_\d+$)"),
+		matches(r"(^psqi_component_\d+$)"),
+		.after = gad_total
+	) %>%
+	select(-matches("^psqi_[134]_[12]$")) %>%
+	rowid_to_column(var = "id")
+```
+
+```{r correct-data}
+manuallyCorrectedData <-
+	tribble(
+		~ id, ~ column, ~ original, ~ new, ~ equal,
+		16L, "courseId", list("idi001"), list("id001"), list(NULL),
+	)
+correctedDataFrame <-
+	validatedDataFrame %>%
+	mutate(
+		courseId = if_else(
+			str_starts(courseId, "id"),
+			courseId,
+			paste0("id", courseId)
+		)
+	) %>%
+	filter(id != 123L) %>%
+	filter(!areGuests(courseId)) %>%
+	manuallyCorrectDataFrame(manuallyCorrectedData) %>%
+	validateUserIdentificationInfo(userInfo) %>%
+	mutate(id = row_number())
+```
+
+```{r add-labels}
+labeledDataFrame <-
+	correctedDataFrame %>%
+	addLabels(tribble(
+		~ columnName, ~ label,
+		"id", "序号",
+		"questionnaireId", "问卷序号",
+		"timestamp", "问卷填写时刻",
+		"duration", "问卷填写时长（秒）",
+		"sourcePlatform", "来源",
+		"sourceDetails", "来源详情",
+		"sourceIp", "来自IP",
+		"courseId", "学号",
+		"group", "分组",
+		!!!(
+			colnames(correctedDataFrame) %>%
+				keep(function(columnName) {
+					columnName %>%
+						str_starts(
+							paste0(
+								c("sci", "isi", "dbas", "ess", "phq", "gad", "psqi"),
+								"_"
+							)
+						) %>%
+						any()
+				}) %>%
+				map(~ c(tolower(.), toupper(.))) %>%
+				flatten_chr() %>%
+				str_replace("_TOTAL$", "_总分")
+		),
+		"questionnaire", "问卷"
+	))
+```
+
+```{r export}
+template <- labeledDataFrame
+exportData(
+	"template",
+	filenameWithoutExtension = file.path(questionnaireExportDir, "template"),
+	spssTransformer = function(column) {
+		if (all(class(column) == "Period")) {
+			as.numeric(column, "minutes")
+		} else {
+			column
+		}
+	}
+)
+```
