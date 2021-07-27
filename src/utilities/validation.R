@@ -139,7 +139,7 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 				))
 			} else if (length(vector) != length(givenVector)) {
 				stop(paste0(
-					"Length mismatch",
+					"Length mismatch: ",
 					length(vector),
 					", ",
 					length(givenVector)
