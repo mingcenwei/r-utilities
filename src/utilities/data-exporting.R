@@ -114,7 +114,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			}
 		}
 
-	LOCAL_ENVIRONMENT__DATA_EXPORTING_R$exportR <-
+	exportR <-
 		function(...,
 				 list = character(),
 				 newNames = NULL,
@@ -134,7 +134,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			)
 		}
 
-	LOCAL_ENVIRONMENT__DATA_EXPORTING_R$exportExcel <-
+	exportExcel <-
 		function(...,
 				 list = character(),
 				 newNames = NULL,
@@ -171,7 +171,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			)
 		}
 
-	LOCAL_ENVIRONMENT__DATA_EXPORTING_R$exportSpss <-
+	exportSpss <-
 		function(...,
 				 list = character(),
 				 newNames = NULL,
@@ -210,20 +210,20 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
 				 excelTransformer = identity,
 				 spssTransformer = identity) {
-			LOCAL_ENVIRONMENT__DATA_EXPORTING_R$exportR(
+			exportR(
 				...,
 				list = list,
 				newNames = newNames,
 				filenameWithoutExtension = filenameWithoutExtension
 			)
-			LOCAL_ENVIRONMENT__DATA_EXPORTING_R$exportExcel(
+			exportExcel(
 				...,
 				list = list,
 				newNames = newNames,
 				filenameWithoutExtension = filenameWithoutExtension,
 				transformer = excelTransformer
 			)
-			LOCAL_ENVIRONMENT__DATA_EXPORTING_R$exportSpss(
+			exportSpss(
 				...,
 				list = list,
 				newNames = newNames,
