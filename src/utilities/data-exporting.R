@@ -104,6 +104,27 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			return(namedList)
 		}
 
+	LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels <-
+		function(transformer) {
+			transformer <- as_mapper(transformer)
+			isValidLabel <- function(label) {
+				!is.null(label) &&
+					is.character(label) &&
+					length(label) != 0L &&
+					!anyNA(label[1L]) &&
+					label[1L] != ""
+			}
+			return(function(column) {
+				label <- attr(column, "label", exact = TRUE)
+				newColumn <- transformer(column)
+				newLabel <- attr(newColumn, "label", exact = TRUE)
+				if (isValidLabel(label) && !isValidLabel(newLabel)) {
+					attr(newColumn, "label") <- label
+				}
+				return(newColumn)
+			})
+		}
+
 	LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer <-
 		function(list) {
 			if (is.list(list)) {
@@ -148,11 +169,11 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			) %>%
 				map(function(dataFrame) {
 					dataFrame %>%
-						mutate(across(.fns = transformer)) %>%
+						mutate(across(.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(transformer))) %>%
 						mutate(
 							across(
 								.cols = where(is.list),
-								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer
+								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
 							)
 						)
 				})
@@ -185,11 +206,17 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			) %>%
 				map(function(dataFrame) {
 					dataFrame %>%
-						mutate(across(.fns = transformer)) %>%
+						mutate(across(.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(transformer))) %>%
 						mutate(
 							across(
 								.cols = where(is.list),
-								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer
+								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
+							)
+						) %>%
+						mutate(
+							across(
+								.cols = where(~ is(., "POSIXt")),
+								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(~ lubridate::with_tz(., tzone = "UTC"))
 							)
 						)
 				})
