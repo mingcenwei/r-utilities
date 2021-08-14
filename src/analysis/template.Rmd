@@ -1,0 +1,37 @@
+---
+title: "Analysis - Template"
+output: html_notebook
+---
+
+```{r setup}
+remove(list = objects(all.names = TRUE))
+
+library(showtext)
+library(ggpubr)
+library(rstatix)
+library(zeallot)
+library(magrittr)
+library(tidyverse)
+
+showtext::showtext_auto()
+```
+
+```{r source-scripts}
+projectSource <- (function() {
+	projectRoot <- rprojroot::find_rstudio_root_file()
+	projectSource <- function(relativePath) {
+		source(file.path(projectRoot, relativePath))
+	}
+	return(projectSource)
+})()
+projectSource("src/utilities/index.R")
+```
+
+```{r import-data}
+list.files(
+	file.path(template__PREPROCESSED_DATA_DIR),
+	pattern = r"(.+\.RData$)",
+	full.names = TRUE
+) %>%
+	walk( ~ source(.))
+```
