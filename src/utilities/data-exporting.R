@@ -160,7 +160,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				 list = character(),
 				 newNames = NULL,
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
-				 transformer = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$transformer) {
+				 transformer = identity) {
 			errors <- tibble(sheet = character(), error = character(), .rows = 0L)
 			namedList <- LOCAL_ENVIRONMENT__DATA_EXPORTING_R$getNamedList(
 				...,
@@ -203,6 +203,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 							errors %>%
 							add_row(sheet = name, error = errorMessage)
 					}
+					return(dataFrame)
 				})
 			if (nrow(errors) > 0L) {
 				namedList <- c(list(..__errors__.. = errors), namedList)
