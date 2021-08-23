@@ -222,9 +222,9 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 						errorMessage <- paste0(
 							"⚠ Error: \"",
 							name,
-							"\" exceeds 1,048,576 rows. Only the first 1,048,576 rows will be exported\n"
+							"\" exceeds 1,048,576 rows. Only the first 1,048,576 rows will be exported"
 						)
-						cat(errorMessage)
+						cat(paste0(errorMessage, "\n"))
 						errors <<-
 							errors %>%
 							add_row(sheet = name, error = errorMessage)
@@ -234,9 +234,9 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 						errorMessage <- paste0(
 							"⚠ Error: \"",
 							name,
-							"\" exceeds 16,384 columns. Only the first 16,384 columns will be exported\n"
+							"\" exceeds 16,384 columns. Only the first 16,384 columns will be exported"
 						)
-						cat(errorMessage)
+						cat(paste0(errorMessage, "\n"))
 						errors <<-
 							errors %>%
 							add_row(sheet = name, error = errorMessage)
