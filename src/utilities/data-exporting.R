@@ -155,6 +155,44 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			)
 		}
 
+	exportSpss <-
+		function(...,
+				 list = character(),
+				 newNames = NULL,
+				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
+				 transformer = identity) {
+			namedList <- LOCAL_ENVIRONMENT__DATA_EXPORTING_R$getNamedList(
+				...,
+				list = list,
+				newNames = newNames,
+				env = rlang::caller_env()
+			) %>%
+				map(function(dataFrame) {
+					dataFrame %>%
+						mutate(across(.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(transformer))) %>%
+						mutate(
+							across(
+								.cols = where(is.list),
+								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
+							)
+						) %>%
+						mutate(
+							across(
+								.cols = where(~ is(., "POSIXt")),
+								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(~ lubridate::with_tz(., tzone = "UTC"))
+							)
+						)
+				})
+			namedList %>%
+				iwalk(function(dataFrame, name) {
+					haven::write_sav(
+						data = dataFrame,
+						path = paste0(filenameWithoutExtension, "__", name, ".zsav"),
+						compress = TRUE
+					)
+				})
+		}
+
 	exportExcel <-
 		function(...,
 				 list = character(),
@@ -223,63 +261,18 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			)
 		}
 
-	exportSpss <-
-		function(...,
-				 list = character(),
-				 newNames = NULL,
-				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
-				 transformer = identity) {
-			namedList <- LOCAL_ENVIRONMENT__DATA_EXPORTING_R$getNamedList(
-				...,
-				list = list,
-				newNames = newNames,
-				env = rlang::caller_env()
-			) %>%
-				map(function(dataFrame) {
-					dataFrame %>%
-						mutate(across(.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(transformer))) %>%
-						mutate(
-							across(
-								.cols = where(is.list),
-								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
-							)
-						) %>%
-						mutate(
-							across(
-								.cols = where(~ is(., "POSIXt")),
-								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(~ lubridate::with_tz(., tzone = "UTC"))
-							)
-						)
-				})
-			namedList %>%
-				iwalk(function(dataFrame, name) {
-					haven::write_sav(
-						data = dataFrame,
-						path = paste0(filenameWithoutExtension, "__", name, ".zsav"),
-						compress = TRUE
-					)
-				})
-		}
-
 	exportData <-
 		function(...,
 				 list = character(),
 				 newNames = NULL,
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
-				 excelTransformer = identity,
-				 spssTransformer = identity) {
+				 spssTransformer = identity,
+				 excelTransformer = identity) {
 			exportR(
 				...,
 				list = list,
 				newNames = newNames,
 				filenameWithoutExtension = filenameWithoutExtension
-			)
-			exportExcel(
-				...,
-				list = list,
-				newNames = newNames,
-				filenameWithoutExtension = filenameWithoutExtension,
-				transformer = excelTransformer
 			)
 			exportSpss(
 				...,
@@ -287,6 +280,13 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				newNames = newNames,
 				filenameWithoutExtension = filenameWithoutExtension,
 				transformer = spssTransformer
+			)
+			exportExcel(
+				...,
+				list = list,
+				newNames = newNames,
+				filenameWithoutExtension = filenameWithoutExtension,
+				transformer = excelTransformer
 			)
 		}
 
