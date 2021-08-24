@@ -4,7 +4,7 @@ output: html_notebook
 ---
 
 ```{r setup}
-remove(list = objects(all.names = TRUE))
+remove(list = objects(all.names = TRUE)[objects(all.names = TRUE) != "template__DATA"])
 
 library(showtext)
 library(ggpubr)
