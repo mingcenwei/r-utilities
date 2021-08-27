@@ -124,7 +124,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 					y = "..count..",
 					binwidth = 1L,
 					add_density = TRUE,
-					!!!paramsForQqPlot,
+					!!!paramsForHistogram,
 				)
 			)
 
