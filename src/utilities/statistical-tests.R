@@ -14,17 +14,6 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 				!anyNA(maybeSingleNonNaString)
 		}
 
-	LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R$list2 <-
-		function(...) {
-			rlang::dots_list(
-				...,
-				.named = TRUE,
-				.ignore_empty = "all",
-				.homonyms = "last",
-				.check_assign = TRUE
-			)
-		}
-
 	pairedSamplesTest <- function(
 		data,
 		valueColumn1 = stop(r"("valueColumn1" must be specified)"),
@@ -44,8 +33,6 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		paramsForWilcoxonEffectSize = list(),
 		paramsForSignTest = list()
 	) {
-		list2 <- LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R$list2
-
 		stopifnot(
 			newGroupColumn %>%
 				is_in(c(
@@ -93,7 +80,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		# pairedDataPlot <-
 		# 	exec(
 		# 		.fn = ggpubr::ggpaired,
-		# 		!!!list2(
+		# 		!!!overridableNamedList(
 		# 			data = data_wider,
 		# 			cond1 = valueColumn1,
 		# 			cond2 = valueColumn2,
@@ -108,7 +95,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		qqplot <-
 			exec(
 				.fn = ggpubr::ggqqplot,
-				!!!list2(
+				!!!overridableNamedList(
 					data = data_wider,
 					x = "difference",
 					!!!paramsForQqPlot
@@ -118,7 +105,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		histogram <-
 			exec(
 				.fn = ggpubr::gghistogram,
-				!!!list2(
+				!!!overridableNamedList(
 					data = data_wider,
 					x = "difference",
 					y = "..count..",
@@ -145,7 +132,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		tTest <-
 			exec(
 				.fn = rstatix::t_test,
-				!!!list2(
+				!!!overridableNamedList(
 					data = data_longer,
 					formula = formula,
 					paired = TRUE,
@@ -158,7 +145,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		cohensD <-
 			exec(
 				.fn = rstatix::cohens_d,
-				!!!list2(
+				!!!overridableNamedList(
 					data = data_longer,
 					formula = formula,
 					paired = TRUE,
@@ -170,7 +157,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		wilcoxonTest <-
 			exec(
 				.fn = rstatix::wilcox_test,
-				!!!list2(
+				!!!overridableNamedList(
 					data = data_longer,
 					formula = formula,
 					paired = TRUE,
@@ -183,7 +170,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		wilcoxonEffectSize <-
 			exec(
 				.fn = rstatix::wilcox_effsize,
-				!!!list2(
+				!!!overridableNamedList(
 					data = data_longer,
 					formula = formula,
 					paired = TRUE,
@@ -195,7 +182,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		signTest <-
 			exec(
 				.fn = rstatix::sign_test,
-				!!!list2(
+				!!!overridableNamedList(
 					data = data_longer,
 					formula = formula,
 					detailed = TRUE,

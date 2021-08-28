@@ -7,6 +7,23 @@ library(tidyverse)
 if (!exists("LOCAL_ENVIRONMENT__HELPERS_R", mode = "environment")) {
 	LOCAL_ENVIRONMENT__HELPERS_R <- new.env()
 
+	overridableNamedList <- function(...) {
+		rlang::dots_list(
+			...,
+			.named = TRUE,
+			.ignore_empty = "trailing",
+			.preserve_empty = FALSE,
+			.homonyms = "last",
+			.check_assign = TRUE
+		)
+	}
+
+	makeSupportDynamicDots <- function(func) {
+		return(function(...) {
+			exec(.fn = func, ...)
+		})
+	}
+
 	getLatestFile <- function(dir) {
 		fileList <-
 			list.files(path = dir,
