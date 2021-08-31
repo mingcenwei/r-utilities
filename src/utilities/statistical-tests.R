@@ -57,7 +57,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			mutate(difference = !!sym(valueColumn1) - !!sym(valueColumn2)) %>%
 			select(!!sym(valueColumn1), !!sym(valueColumn2), difference)
 		# for (column in c(valueColumn1, valueColumn2)) {
-		# 	attr(data_wider[[column]], "label") <- NULL
+		# 	label(data_wider[[column]]) <- NULL
 		# }
 
 		data_longer <-

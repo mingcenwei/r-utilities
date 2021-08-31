@@ -73,6 +73,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				}
 			} else {
 				namesAndValues <- list()
+				names <- NULL
 			}
 			namesAndValues <-
 				namesAndValues %>%
@@ -104,22 +105,38 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			return(namedList)
 		}
 
-	LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels <-
+	label <- function(object) {
+		base::attr(object, "label", exact = TRUE)
+	}
+	`label<-` <- function(object, value) {
+		label <- value
+		stopifnot(
+			is.null(label) || (is.character(label) && length(label) != 0L)
+		)
+		if (is.null(label) || anyNA(label[1L]) || label[1L] == "") {
+			base::attr(object, "label") <- NULL
+		} else {
+			base::attr(object, "label") <- label
+		}
+		return(object)
+	}
+
+	isValidNonEmptyLabel <- function(label) {
+		is.character(label) &&
+			length(label) != 0L &&
+			!anyNA(label[1L]) &&
+			label[1L] != ""
+	}
+	makeKeepLabels <-
 		function(transformer) {
 			transformer <- as_mapper(transformer)
-			isValidLabel <- function(label) {
-				!is.null(label) &&
-					is.character(label) &&
-					length(label) != 0L &&
-					!anyNA(label[1L]) &&
-					label[1L] != ""
-			}
 			return(function(column) {
-				label <- attr(column, "label", exact = TRUE)
+				label <- label(column)
 				newColumn <- transformer(column)
-				newLabel <- attr(newColumn, "label", exact = TRUE)
-				if (isValidLabel(label) && !isValidLabel(newLabel)) {
-					attr(newColumn, "label") <- label
+				newLabel <- label(newColumn)
+				if (isValidNonEmptyLabel(label) &&
+					!isValidNonEmptyLabel(newLabel)) {
+					label(newColumn) <- label
 				}
 				return(newColumn)
 			})
@@ -169,17 +186,17 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			) %>%
 				map(function(dataFrame) {
 					dataFrame %>%
-						mutate(across(.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(transformer))) %>%
+						mutate(across(.fns = makeKeepLabels(transformer))) %>%
 						mutate(
 							across(
 								.cols = where(is.list),
-								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
+								.fns = makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
 							)
 						) %>%
 						mutate(
 							across(
 								.cols = where(~ is(., "POSIXt")),
-								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(~ lubridate::with_tz(., tzone = "UTC"))
+								.fns = makeKeepLabels(~ lubridate::with_tz(., tzone = "UTC"))
 							)
 						)
 				})
@@ -210,11 +227,11 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 					stopifnot(name != "..__errors__..")
 					dataFrame <-
 						dataFrame %>%
-						mutate(across(.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(transformer))) %>%
+						mutate(across(.fns = makeKeepLabels(transformer))) %>%
 						mutate(
 							across(
 								.cols = where(is.list),
-								.fns = LOCAL_ENVIRONMENT__DATA_EXPORTING_R$makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
+								.fns = makeKeepLabels(LOCAL_ENVIRONMENT__DATA_EXPORTING_R$listColumnSerializer)
 							)
 						)
 					if (nrow(dataFrame) > 1048576L) {
@@ -294,21 +311,30 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 		labeledDataFrame <- dataFrame
 		labels %>%
 			pwalk(function(columnName, label, ...) {
-				stopifnot(!anyNA(columnName))
-				attr(pluck(labeledDataFrame, columnName), "label") <<- label
+				stopifnot(
+					isValidNonEmptyLabel(columnName) && length(columnName) == 1L
+				)
+				label(pluck(labeledDataFrame, columnName)) <<- label
 			})
-		stopifnot(
+
+		unlabeledColumns <-
 			labeledDataFrame %>%
-				map(~ attr(., "label", exact = TRUE)) %>%
-				imap_lgl(function(label, columnName) {
-					if (!is.null(label)) {
-						return(TRUE)
-					} else {
-						return(FALSE)
-					}
-				}) %>%
-				all()
-		)
+			discard(~ isValidNonEmptyLabel(label(.))) %>%
+			colnames()
+		if (length(unlabeledColumns) == 1L) {
+			stop(paste(
+				"Column",
+				capture.output(dput(unlabeledColumns)),
+				"has no label."
+			))
+		} else if (length(unlabeledColumns) >= 2L) {
+			stop(paste(
+				"Columns",
+				capture.output(dput(unlabeledColumns)),
+				"have no label."
+			))
+		}
+
 		return(labeledDataFrame)
 	}
 }
