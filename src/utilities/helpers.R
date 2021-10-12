@@ -24,6 +24,14 @@ if (!exists("LOCAL_ENVIRONMENT__HELPERS_R", mode = "environment")) {
 		})
 	}
 
+	system3 <- function(command, args = character(), ...) {
+		return(base::system2(
+			command = command,
+			args = map_chr(args, base::shQuote),
+			...
+		))
+	}
+
 	getLatestFile <- function(dir) {
 		fileList <-
 			list.files(path = dir,
@@ -36,7 +44,7 @@ if (!exists("LOCAL_ENVIRONMENT__HELPERS_R", mode = "environment")) {
 		file <- getLatestFile(dir)
 		stopifnot(!is.null(file))
 		latest <- file.path(dir, "latest")
-		system2(
+		system3(
 			command = "ln",
 			args = c(
 				"--symbolic",
