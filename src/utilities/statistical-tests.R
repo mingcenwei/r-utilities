@@ -78,7 +78,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			rstatix::get_summary_stats(!!sym(newValueColumn), type = "full")
 
 		# pairedDataPlot <-
-		# 	exec(
+		# 	rlang::exec(
 		# 		.fn = ggpubr::ggpaired,
 		# 		!!!overridableNamedList(
 		# 			data = data_wider,
@@ -93,7 +93,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		boxPlot <- NULL
 
 		qqplot <-
-			exec(
+			rlang::exec(
 				.fn = ggpubr::ggqqplot,
 				!!!overridableNamedList(
 					data = data_wider,
@@ -103,7 +103,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			)
 
 		histogram <-
-			exec(
+			rlang::exec(
 				.fn = ggpubr::gghistogram,
 				!!!overridableNamedList(
 					data = data_wider,
@@ -130,7 +130,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			}
 
 		tTest <-
-			exec(
+			rlang::exec(
 				.fn = rstatix::t_test,
 				!!!overridableNamedList(
 					data = data_longer,
@@ -143,7 +143,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			rstatix::add_significance(.)
 
 		cohensD <-
-			exec(
+			rlang::exec(
 				.fn = rstatix::cohens_d,
 				!!!overridableNamedList(
 					data = data_longer,
@@ -155,7 +155,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			)
 
 		wilcoxonTest <-
-			exec(
+			rlang::exec(
 				.fn = rstatix::wilcox_test,
 				!!!overridableNamedList(
 					data = data_longer,
@@ -168,7 +168,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			rstatix::add_significance(.)
 
 		wilcoxonEffectSize <-
-			exec(
+			rlang::exec(
 				.fn = rstatix::wilcox_effsize,
 				!!!overridableNamedList(
 					data = data_longer,
@@ -180,7 +180,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			)
 
 		signTest <-
-			exec(
+			rlang::exec(
 				.fn = rstatix::sign_test,
 				!!!overridableNamedList(
 					data = data_longer,

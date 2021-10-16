@@ -20,7 +20,7 @@ if (!exists("LOCAL_ENVIRONMENT__HELPERS_R", mode = "environment")) {
 
 	makeSupportDynamicDots <- function(func) {
 		return(function(...) {
-			exec(.fn = func, ...)
+			rlang::exec(.fn = func, ...)
 		})
 	}
 
