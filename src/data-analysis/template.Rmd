@@ -28,10 +28,12 @@ projectSource("src/utilities/index.R")
 ```
 
 ```{r import-data}
+dataList <- new.env()
 list.files(
-	file.path(template__PREPROCESSED_DATA_DIR),
-	pattern = r"(.+\.RData$)",
-	full.names = TRUE
-) %>%
-	walk( ~ source(.))
+		file.path(template__PREPROCESSED_DATA_DIR),
+		pattern = r"(.+\.RData$)",
+		full.names = TRUE
+	) %>%
+		walk(~ load(., envir = dataList))
+dataList <- as.list(dataList)
 ```
