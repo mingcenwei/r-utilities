@@ -1,5 +1,5 @@
 ---
-title: "Analysis - Template"
+title: "Data Analysis - Template"
 output: html_notebook
 ---
 
