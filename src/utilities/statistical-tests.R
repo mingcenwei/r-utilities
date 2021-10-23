@@ -35,11 +35,25 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			select(-where(is.list)) %>%
 			Hmisc::describe()
 
-		results[["rstatix__get_summary_stats"]] <-
-			dataFrame %>%
-			mutate(across(.fns = makeKeepLabels(transformer))) %>%
-			rstatix::get_summary_stats(type = "full") %>%
-			suppressWarnings()
+		results[["rstatix__get_summary_stats"]] <- with(list(), {
+			args <- rlang::list2(
+				type = "full"
+			)
+			subDataFrame <-
+				dataFrame %>%
+				mutate(across(.fns = makeKeepLabels(transformer))) %>%
+				select(where(is.numeric))
+			if (identical(ncol(subDataFrame), 0L)) {
+				rlang::exec(rstatix::get_summary_stats, tibble(x = 0L), !!!args) %>%
+					suppressWarnings() %>%
+					head(0L)
+			} else {
+				dataFrame %>%
+					mutate(across(.fns = makeKeepLabels(transformer))) %>%
+					rlang::exec(rstatix::get_summary_stats, ., !!!args) %>%
+					suppressWarnings()
+			}
+		})
 
 		results[["psych__describe"]] <- with(list(), {
 			args <- rlang::list2(
@@ -49,21 +63,27 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 				dataFrame %>%
 				mutate(across(.fns = makeKeepLabels(transformer))) %>%
 				select(where(is.numeric))
-			summary <-
-				(if (identical(ncol(dataFrame), 1L)) {
-					dummyColumn <- str_interp("temporary__${dataFrame %>% colnames()}")
-					dataFrame <-
-						dataFrame %>%
-						rowid_to_column(var = dummyColumn)
-					rlang::exec(psych::describe, dataFrame, !!!args) %>%
-						as_tibble(rownames = "variable") %>%
-						filter(variable != !!dummyColumn)
-				} else {
-					rlang::exec(psych::describe, dataFrame, !!!args) %>%
-						as_tibble(rownames = "variable")
-				})
-			summary %>%
-				select(-vars)
+			if (identical(ncol(dataFrame), 0L)) {
+				rlang::exec(psych::describe, tibble(x = 0L, y = 0L), !!!args) %>%
+					as_tibble(rownames = "variable") %>%
+					head(0L)
+			} else {
+				summary <-
+					(if (identical(ncol(dataFrame), 1L)) {
+						dummyColumn <- str_interp("temporary__${dataFrame %>% colnames()}")
+						dataFrame <-
+							dataFrame %>%
+							rowid_to_column(var = dummyColumn)
+						rlang::exec(psych::describe, dataFrame, !!!args) %>%
+							as_tibble(rownames = "variable") %>%
+							filter(variable != !!dummyColumn)
+					} else {
+						rlang::exec(psych::describe, dataFrame, !!!args) %>%
+							as_tibble(rownames = "variable")
+					})
+				summary %>%
+					select(-vars)
+			}
 		})
 
 		return(results)
