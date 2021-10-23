@@ -175,7 +175,6 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 					data = data_longer,
 					x = valueColumn,
 					y = "..count..",
-					facet.by = groupColumn,
 					binwidth = 1L,
 					add_density = TRUE,
 					!!!paramsForHistogram,
