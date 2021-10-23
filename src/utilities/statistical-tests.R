@@ -89,6 +89,233 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		return(results)
 	}
 
+	independentSamplesTest <- function(
+		data,
+		groupColumn = stop(r"("groupColumn" must be specified)"),
+		valueColumn = stop(r"("valueColumn" must be specified)"),
+		groupNameTransformer = identity,
+		drawGraph = TRUE,
+		paramsForBarPlot = list(),
+		paramsForBoxPlot = list(),
+		paramsForQqPlot = list(),
+		paramsForHistogram = list(),
+		paramsForTTest = list(),
+		paramsForCohensD = list(),
+		paramsForWilcoxonTest = list(),
+		paramsForWilcoxonEffectSize = list()
+	) {
+		stopifnot(
+			groupColumn %>%
+				is_in(c(
+					"variable", "n", "min", "max", "median", "q1", "q3", "iqr", "mad", "mean", "sd", "se", "ci",
+					"is.outlier", "is.extreme", "statistic", "p"
+				)) %>%
+				not()
+		)
+
+		data_longer <-
+			data %>%
+			mutate(
+				!!sym(groupColumn) :=
+					as_factor(as_mapper(groupNameTransformer)(!!sym(groupColumn)))
+			) %>%
+			select(all_of(c(groupColumn, valueColumn)))
+
+		stopifnot(
+			data_longer[[groupColumn]] %>% unique() %>% length() %>% is_in(1L:2L)
+		)
+
+		formula <- as.formula(paste(valueColumn, groupColumn, sep = " ~ "))
+
+		summaryStatistics <-
+			data_longer %>%
+			group_by(!!sym(groupColumn)) %>%
+			rstatix::get_summary_stats(!!sym(valueColumn), type = "full")
+
+		barPlot <- NULL
+
+		boxPlot <- NULL
+
+		qqplot <-
+			rlang::exec(
+				.fn = ggpubr::ggqqplot,
+				!!!overridableNamedList(
+					data = data_longer,
+					x = valueColumn,
+					facet.by = groupColumn,
+					!!!paramsForQqPlot
+				)
+			)
+
+		histogram <-
+			rlang::exec(
+				.fn = ggpubr::gghistogram,
+				!!!overridableNamedList(
+					data = data_longer,
+					x = valueColumn,
+					y = "..count..",
+					facet.by = groupColumn,
+					binwidth = 1L,
+					add_density = TRUE,
+					!!!paramsForHistogram,
+				)
+			)
+
+		outliers <-
+			data_longer %>%
+			group_by(!!sym(groupColumn)) %>%
+			rstatix::identify_outliers(!!sym(valueColumn))
+
+		shapiroWilkNormalityTest <- with(list(), {
+			groupSize <- data_longer %>% rename(group = groupColumn, value = valueColumn) %>% count(group)
+			group1 <- groupSize %>% pluck("group", 1L) %>% as.character()
+			group2 <- groupSize %>% pluck("group", 2L) %>% as.character()
+			if ((groupSize %>% pluck("n", 1L)) < 3L) {
+				if ((groupSize %>% pluck("n", 2L)) < 3L) {
+					rlang::list2(
+						!!group1 := "Sample size is less than 3. Shapiro-Wilk normality test cannot be used.",
+						!!group2 := "Sample size is less than 3. Shapiro-Wilk normality test cannot be used."
+					)
+				} else if ((groupSize %>% pluck("n", 2L)) > 5000L) {
+					rlang::list2(
+						!!group1 := "Sample size is less than 3. Shapiro-Wilk normality test cannot be used.",
+						!!group2 := "Sample size is greater than 5000. Shapiro-Wilk normality test cannot be used."
+					)
+				} else {
+					rlang::list2(
+						!!group1 := "Sample size is less than 3. Shapiro-Wilk normality test cannot be used.",
+						!!group2 := data_longer %>% filter(!!sym(groupColumn) == !!group2) %>% rstatix::shapiro_test(!!sym(valueColumn))
+					)
+				}
+			} else if ((groupSize %>% pluck("n", 1L)) > 5000L) {
+				if ((groupSize %>% pluck("n", 2L)) < 3L) {
+					rlang::list2(
+						!!group1 := "Sample size is greater than 5000. Shapiro-Wilk normality test cannot be used.",
+						!!group2 := "Sample size is less than 3. Shapiro-Wilk normality test cannot be used."
+					)
+				} else if ((groupSize %>% pluck("n", 2L)) > 5000L) {
+					rlang::list2(
+						!!group1 := "Sample size is greater than 5000. Shapiro-Wilk normality test cannot be used.",
+						!!group2 := "Sample size is greater than 5000. Shapiro-Wilk normality test cannot be used."
+					)
+				} else {
+					rlang::list2(
+						!!group1 := "Sample size is greater than 5000. Shapiro-Wilk normality test cannot be used.",
+						!!group2 := data_longer %>% filter(!!sym(groupColumn) == !!group2) %>% rstatix::shapiro_test(!!sym(valueColumn))
+					)
+				}
+			} else {
+				if ((groupSize %>% pluck("n", 2L)) < 3L) {
+					rlang::list2(
+						!!group1 := data_longer %>% filter(!!sym(groupColumn) == !!group1) %>% rstatix::shapiro_test(!!sym(valueColumn)),
+						!!group2 := "Sample size is less than 3. Shapiro-Wilk normality test cannot be used."
+					)
+				} else if ((groupSize %>% pluck("n", 2L)) > 5000L) {
+					rlang::list2(
+						!!group1 := data_longer %>% filter(!!sym(groupColumn) == !!group1) %>% rstatix::shapiro_test(!!sym(valueColumn)),
+						!!group2 := "Sample size is greater than 5000. Shapiro-Wilk normality test cannot be used."
+					)
+				} else {
+					data_longer %>% group_by(!!sym(groupColumn)) %>% rstatix::shapiro_test(!!sym(valueColumn))
+				}
+			}
+		})
+
+		leveneEqualityOfVariancesTest <-
+			data_longer %>%
+			rstatix::levene_test(data = ., formula = formula)
+
+		tTest <-
+			rlang::exec(
+				.fn = rstatix::t_test,
+				!!!overridableNamedList(
+					data = data_longer,
+					formula = formula,
+					detailed = TRUE,
+					!!!paramsForTTest
+				)
+			) %>%
+			rstatix::add_significance(.)
+
+		cohensD <-
+			rlang::exec(
+				.fn = rstatix::cohens_d,
+				!!!overridableNamedList(
+					data = data_longer,
+					formula = formula,
+					ci = FALSE,
+					!!!paramsForCohensD
+				)
+			)
+
+		tTestEqualVariances <-
+			rlang::exec(
+				.fn = rstatix::t_test,
+				!!!overridableNamedList(
+					data = data_longer,
+					formula = formula,
+					var.equal = TRUE,
+					detailed = TRUE,
+					!!!paramsForTTest
+				)
+			) %>%
+			rstatix::add_significance(.)
+
+		cohensDEqualVariances <-
+			rlang::exec(
+				.fn = rstatix::cohens_d,
+				!!!overridableNamedList(
+					data = data_longer,
+					formula = formula,
+					var.equal = TRUE,
+					ci = FALSE,
+					!!!paramsForCohensD
+				)
+			)
+
+		wilcoxonTest <-
+			rlang::exec(
+				.fn = rstatix::wilcox_test,
+				!!!overridableNamedList(
+					data = data_longer,
+					formula = formula,
+					detailed = TRUE,
+					!!!paramsForWilcoxonTest
+				)
+			) %>%
+			rstatix::add_significance(.)
+
+		wilcoxonEffectSize <-
+			rlang::exec(
+				.fn = rstatix::wilcox_effsize,
+				!!!overridableNamedList(
+					data = data_longer,
+					formula = formula,
+					ci = FALSE,
+					!!!paramsForWilcoxonEffectSize
+				)
+			)
+
+		return(
+			list(
+				barPlot = if (drawGraph) barPlot else NULL,
+				boxPlot = if (drawGraph) boxPlot else NULL,
+				qqplot = if (drawGraph) qqplot else NULL,
+				histogram = if (drawGraph) histogram else NULL,
+				summaryStatistics = summaryStatistics,
+				outliers = outliers,
+				shapiroWilkNormalityTest = shapiroWilkNormalityTest,
+				leveneEqualityOfVariancesTest = leveneEqualityOfVariancesTest,
+				tTest = tTest,
+				cohensD = cohensD,
+				tTestEqualVariances = tTestEqualVariances,
+				cohensDEqualVariances = cohensDEqualVariances,
+				wilcoxonTest = wilcoxonTest,
+				wilcoxonEffectSize = wilcoxonEffectSize
+			)
+		)
+	}
+
 	pairedSamplesTest <- function(
 		data,
 		valueColumn1 = stop(r"("valueColumn1" must be specified)"),
