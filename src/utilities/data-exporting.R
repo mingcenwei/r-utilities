@@ -120,6 +120,10 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 		}
 		return(object)
 	}
+	addLabel <- function(object, value) {
+		label(object) <- value
+		return(object)
+	}
 
 	isValidNonEmptyLabel <- function(label) {
 		is.character(label) &&
