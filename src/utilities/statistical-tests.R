@@ -14,6 +14,61 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 				!anyNA(maybeSingleNonNaString)
 		}
 
+	summaryDataFrame <- function(dataFrame, transformer = identity) {
+		results <- list()
+
+		results[["summarytools__dfSummar"]] <-
+			dataFrame %>%
+			mutate(across(.fns = makeKeepLabels(transformer))) %>%
+			mutate(across(
+				.cols = where( ~ is(., "Period")),
+				.fns = makeKeepLabels(lubridate::as.duration)
+			)) %>%
+			summarytools::dfSummary(
+				round.digits = 4L,
+				varnumbers = FALSE
+			)
+
+		results[["Hmisc__describe"]] <-
+			dataFrame %>%
+			mutate(across(.fns = makeKeepLabels(transformer))) %>%
+			select(-where(is.list)) %>%
+			Hmisc::describe()
+
+		results[["rstatix__get_summary_stats"]] <-
+			dataFrame %>%
+			mutate(across(.fns = makeKeepLabels(transformer))) %>%
+			rstatix::get_summary_stats(type = "full") %>%
+			suppressWarnings()
+
+		results[["psych__describe"]] <- with(list(), {
+			args <- rlang::list2(
+				IQR = TRUE
+			)
+			dataFrame <-
+				dataFrame %>%
+				mutate(across(.fns = makeKeepLabels(transformer))) %>%
+				select(where(is.numeric))
+			summary <-
+				(if (identical(ncol(dataFrame), 1L)) {
+					dummyColumn <- str_interp("temporary__${dataFrame %>% colnames()}")
+					dataFrame <-
+						dataFrame %>%
+						rowid_to_column(var = dummyColumn)
+					rlang::exec(psych::describe, dataFrame, !!!args) %>%
+						as_tibble(rownames = "variable") %>%
+						filter(variable != !!dummyColumn)
+				} else {
+					rlang::exec(psych::describe, dataFrame, !!!args) %>%
+						as_tibble(rownames = "variable")
+				})
+			summary %>%
+				select(-vars)
+		})
+
+		return(results)
+	}
+
 	pairedSamplesTest <- function(
 		data,
 		valueColumn1 = stop(r"("valueColumn1" must be specified)"),
