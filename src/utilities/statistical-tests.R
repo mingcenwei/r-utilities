@@ -132,9 +132,30 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			group_by(!!sym(groupColumn)) %>%
 			rstatix::get_summary_stats(!!sym(valueColumn), type = "full")
 
-		barPlot <- NULL
+		barPlot <-
+			rlang::exec(
+				.fn = ggpubr::ggbarplot,
+				!!!overridableNamedList(
+					data = data_longer,
+					x = groupColumn,
+					y = valueColumn,
+					add = c("mean_ci", "jitter"),
+					!!!paramsForBarPlot
+				)
+			)
 
-		boxPlot <- NULL
+		boxPlot <-
+			rlang::exec(
+				.fn = ggpubr::ggboxplot,
+				!!!overridableNamedList(
+					data = data_longer,
+					x = groupColumn,
+					y = valueColumn,
+					add = c("mean", "jitter"),
+					notch = TRUE,
+					!!!paramsForBoxPlot
+				)
+			)
 
 		qqplot <-
 			rlang::exec(
@@ -390,9 +411,30 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 		# 		)
 		# 	)
 
-		barPlot <- NULL
+		barPlot <-
+			rlang::exec(
+				.fn = ggpubr::ggbarplot,
+				!!!overridableNamedList(
+					data = data_longer,
+					x = newGroupColumn,
+					y = newValueColumn,
+					add = c("mean_ci", "jitter"),
+					!!!paramsForBarPlot
+				)
+			)
 
-		boxPlot <- NULL
+		boxPlot <-
+			rlang::exec(
+				.fn = ggpubr::ggboxplot,
+				!!!overridableNamedList(
+					data = data_longer,
+					x = newGroupColumn,
+					y = newValueColumn,
+					add = c("mean", "jitter"),
+					notch = TRUE,
+					!!!paramsForBoxPlot
+				)
+			)
 
 		qqplot <-
 			rlang::exec(
