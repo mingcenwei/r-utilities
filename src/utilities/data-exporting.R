@@ -314,14 +314,16 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				list = list,
 				newNames = newNames,
 				filenameWithoutExtension = filenameWithoutExtension,
-				transformer = spssTransformer
+				transformer = spssTransformer,
+				columnNames = spssColumnNames
 			)
 			exportExcel(
 				...,
 				list = list,
 				newNames = newNames,
 				filenameWithoutExtension = filenameWithoutExtension,
-				transformer = excelTransformer
+				transformer = excelTransformer,
+				columnNames = excelColumnNames
 			)
 		}
 
