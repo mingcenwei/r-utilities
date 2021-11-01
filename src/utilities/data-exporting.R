@@ -181,7 +181,8 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				 list = character(),
 				 newNames = NULL,
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
-				 transformer = identity) {
+				 transformer = identity,
+				 columnNames = c("{.columnName}", "{.label}", "{.columnName}__{.label}")[1L]) {
 			namedList <- LOCAL_ENVIRONMENT__DATA_EXPORTING_R$getNamedList(
 				...,
 				list = list,
@@ -189,7 +190,8 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				env = rlang::caller_env()
 			) %>%
 				map(function(dataFrame) {
-					dataFrame %>%
+					dataFrame <-
+						dataFrame %>%
 						mutate(across(.fns = makeKeepLabels(transformer))) %>%
 						mutate(
 							across(
@@ -203,6 +205,11 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 								.fns = makeKeepLabels(~ lubridate::with_tz(., tzone = "UTC"))
 							)
 						)
+					glueEnv <- new.env(parent = globalenv())
+					glueEnv[[".columnName"]] <- names(dataFrame)
+					glueEnv[[".label"]] <- map(dataFrame, label)
+					names(dataFrame) <- glue::glue(columnNames, .envir = glueEnv)
+					return(dataFrame)
 				})
 			namedList %>%
 				iwalk(function(dataFrame, name) {
@@ -294,6 +301,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
 				 spssTransformer = identity,
 				 excelTransformer = identity,
+				 spssColumnNames = c("{.columnName}", "{.label}", "{.columnName}__{.label}")[1L],
 				 excelColumnNames = c("{.columnName}", "{.label}", "{.columnName}__{.label}")[1L]) {
 			exportR(
 				...,
