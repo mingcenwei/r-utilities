@@ -219,7 +219,8 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				 list = character(),
 				 newNames = NULL,
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
-				 transformer = identity) {
+				 transformer = identity,
+				 columnNames = c("{.columnName}", "{.label}", "{.columnName}__{.label}")[1L]) {
 			errors <- tibble(sheet = character(), error = character(), .rows = 0L)
 			namedList <- LOCAL_ENVIRONMENT__DATA_EXPORTING_R$getNamedList(
 				...,
@@ -262,6 +263,10 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 							errors %>%
 							add_row(sheet = name, error = errorMessage)
 					}
+					glueEnv <- new.env(parent = globalenv())
+					glueEnv[[".columnName"]] <- names(dataFrame)
+					glueEnv[[".label"]] <- map(dataFrame, label)
+					names(dataFrame) <- glue::glue(columnNames, .envir = glueEnv)
 					return(dataFrame)
 				})
 			if (nrow(errors) > 0L) {
@@ -288,7 +293,8 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				 newNames = NULL,
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
 				 spssTransformer = identity,
-				 excelTransformer = identity) {
+				 excelTransformer = identity,
+				 excelColumnNames = c("{.columnName}", "{.label}", "{.columnName}__{.label}")[1L]) {
 			exportR(
 				...,
 				list = list,
