@@ -4,7 +4,9 @@ output: html_notebook
 ---
 
 ```{r setup}
-remove(list = objects(all.names = TRUE)[!(objects(all.names = TRUE) %in% "template__RAW_DATA")])
+remove(list = objects(all.names = TRUE)[!(objects(all.names = TRUE) %in% c(
+	"template__RAW_DATA"
+))])
 
 library(zeallot)
 library(magrittr)
