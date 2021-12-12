@@ -105,13 +105,27 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			return(namedList)
 		}
 
-	label <- function(object) {
-		base::attr(object, "label", exact = TRUE)
+	label <- function(object, normalize = FALSE) {
+		label <- base::attr(object, "label", exact = TRUE)
+		if (isTRUE(normalize)) {
+			if (!is.character(label) || length(label) == 0L || anyNA(label[1L]) || label[1L] == "") {
+				label <- NULL
+			} else {
+				label <- label[1L]
+			}
+		}
+		return(label)
 	}
-	`label<-` <- function(object, value) {
+	`label<-` <- function(object, value, strict = FALSE) {
 		label <- value
 		stopifnot(
-			is.null(label) || (is.character(label) && length(label) != 0L)
+			is.null(label) || (
+				is.character(label) && length(label) != 0L && (
+					!isTRUE(strict) || (
+						length(label) == 1L && !anyNA(label) && label != ""
+					)
+				)
+			)
 		)
 		if (is.null(label) || anyNA(label[1L]) || label[1L] == "") {
 			base::attr(object, "label") <- NULL
