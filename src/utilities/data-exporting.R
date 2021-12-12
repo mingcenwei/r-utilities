@@ -221,7 +221,16 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 						)
 					glueEnv <- new.env(parent = globalenv())
 					glueEnv[[".columnName"]] <- names(dataFrame)
-					glueEnv[[".label"]] <- map(dataFrame, label)
+					glueEnv[[".label"]] <-
+						dataFrame %>%
+						map(~ label(., normalize = TRUE)) %>%
+						map_chr(function(label) {
+							if (is.null(label)) {
+								return("")
+							} else {
+								return(label)
+							}
+						})
 					names(dataFrame) <- glue::glue(columnNames, .envir = glueEnv)
 					return(dataFrame)
 				})
@@ -286,7 +295,16 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 					}
 					glueEnv <- new.env(parent = globalenv())
 					glueEnv[[".columnName"]] <- names(dataFrame)
-					glueEnv[[".label"]] <- map(dataFrame, label)
+					glueEnv[[".label"]] <-
+						dataFrame %>%
+						map(~ label(., normalize = TRUE)) %>%
+						map_chr(function(label) {
+							if (is.null(label)) {
+								return("")
+							} else {
+								return(label)
+							}
+						})
 					names(dataFrame) <- glue::glue(columnNames, .envir = glueEnv)
 					return(dataFrame)
 				})
