@@ -85,11 +85,17 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 		) {
 			stop("Invalid arguments")
 		}
+		vectorMin <- base::min(integerVector, na.rm = TRUE)
+		vectorMax <- base::max(integerVector, na.rm = TRUE)
 		if (anyNA(oldMin)) {
-			oldMin <- base::min(integerVector, na.rm = TRUE)
+			oldMin <- vectorMin
+		} else if (oldMin > vectorMin) {
+			stop(glue::glue("`oldMin > vectorMin`: `oldMin` {oldMin}, `vectorMin` {vectorMin}"))
 		}
 		if (anyNA(oldMax)) {
-			oldMax <- base::max(integerVector, na.rm = TRUE)
+			oldMax <- vectorMax
+		} else if (oldMax < vectorMax) {
+			stop(glue::glue("`oldMax < vectorMax`: `oldMax` {oldMax}, `vectorMax` {vectorMax}"))
 		}
 		if (anyNA(min)) {
 			if (anyNA(max)) {
