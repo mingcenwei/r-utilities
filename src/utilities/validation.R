@@ -251,8 +251,6 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						}
 					}
 					LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
-				} else {
-					stop("Invalid arguments: allInOrderOrNa")
 				}
 			}
 			return(invisible(vector))
