@@ -65,4 +65,11 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 				choices,
 			)
 	}
+
+	replaceChoicesWithLabels <- function(labelledVector, levels = c("default", "labels", "values", "both")) {
+		if (!haven::is.labelled(labelledVector)) {
+			stop("Not a labelled vector")
+		}
+		labelledVector %>% haven::as_factor(levels = levels) %>% as.character()
+	}
 }
