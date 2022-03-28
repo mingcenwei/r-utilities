@@ -91,13 +91,13 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 			oldMin <- vectorMin
 		} else if (oldMin > vectorMin) {
 			indices <- which(integerVector == vectorMin) %>% str_c(collapse = ", ")
-			stop(glue::glue_safe("`oldMin > vectorMin`: `oldMin` {oldMin}, `vectorMin` {vectorMin} (`indices` indices)"))
+			stop(glue::glue_safe("`oldMin > vectorMin`: `oldMin` {oldMin}, `vectorMin` {vectorMin} (`indices` {indices})"))
 		}
 		if (anyNA(oldMax)) {
 			oldMax <- vectorMax
 		} else if (oldMax < vectorMax) {
 			indices <- which(integerVector == vectorMin) %>% str_c(collapse = ", ")
-			stop(glue::glue_safe("`oldMax < vectorMax`: `oldMax` {oldMax}, `vectorMax` {vectorMax} (`indices` indices)"))
+			stop(glue::glue_safe("`oldMax < vectorMax`: `oldMax` {oldMax}, `vectorMax` {vectorMax} (`indices` {indices})"))
 		}
 		if (anyNA(min)) {
 			if (anyNA(max)) {
