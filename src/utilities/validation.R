@@ -294,12 +294,12 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 					notNa = c_across(starts_with("prefix_")) %>% not() %>% which() %>% str_c(collapse = ", "),
 				) %>%
 				ungroup() %>%
-				mutate(columnIndex = row_number()) %>%
+				mutate(rowIndex = row_number()) %>%
 				transmute(
 					message = if_else(
 						na == "" | notNa == "",
 						NA_character_,
-						glue::glue_safe("Column {columnIndex}: NA columns {na}; Non-NA columns {notNa}") %>% as.character()
+						glue::glue_safe("Row index {rowIndex}: NA column indices {na}; Non-NA column indices {notNa}") %>% as.character()
 					)
 				) %>%
 				filter(!is.na(message)) %>%
