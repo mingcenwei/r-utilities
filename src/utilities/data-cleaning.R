@@ -72,4 +72,48 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 		}
 		labelledVector %>% haven::as_factor(levels = levels) %>% as.character()
 	}
+
+	changeMinMax <- function(integerVector, reversed = FALSE, min = NA_integer_, max = NA_integer_, oldMin = base::min(integerVector, na.rm = TRUE), oldMax = base::max(integerVector, na.rm = TRUE)) {
+		if (!is.integer(integerVector)) {
+			stop("Not an integer vector")
+		}
+		if (
+			!(reversed %in% c(TRUE, FALSE)) ||
+			!all(list(min, max, oldMin, oldMax) %>% map_lgl(function(number) {
+				is.integer(number) && length(number) == 1L
+			}))
+		) {
+			stop("Invalid arguments")
+		}
+		if (anyNA(oldMin)) {
+			oldMin <- base::min(integerVector, na.rm = TRUE)
+		}
+		if (anyNA(oldMax)) {
+			oldMax <- base::max(integerVector, na.rm = TRUE)
+		}
+		if (anyNA(min)) {
+			if (anyNA(max)) {
+				min <- oldMin
+				max <- oldMax
+			} else {
+				min <- oldMin + (max - oldMax)
+			}
+		} else if (anyNA(max)) {
+			max <- oldMax + (min - oldMin)
+		}
+		if (oldMin > oldMax) {
+			stop(glue::glue("`oldMin > oldMax`: `oldMin` {oldMin}, `oldMax` {oldMax}"))
+		}
+		if (min > max) {
+			stop(glue::glue("`min > max`: `min` {min}, `max` {max}"))
+		}
+		if (oldMax - oldMin != max - min) {
+			stop(glue::glue("`oldMax - oldMin != max - min`: `oldMin` {oldMin}, `oldMax` {oldMax}, `min` {min}, `max` {max}"))
+		}
+		if (reversed) {
+			max + (oldMin - integerVector)
+		} else {
+			integerVector + (min - oldMin)
+		}
+	}
 }
