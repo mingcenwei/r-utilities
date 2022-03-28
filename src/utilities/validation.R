@@ -251,8 +251,64 @@ if (!exists("LOCAL_ENVIRONMENT__VALIDATION_R", mode = "environment")) {
 						}
 					}
 					LOCAL_ENVIRONMENT__VALIDATION_R$unreachable()
+				} else {
+					stop("Invalid arguments: allInOrderOrNa")
 				}
 			}
 			return(invisible(vector))
 		}
+	simultaneouslyNa <- function(dataFrame, includingNull = TRUE) {
+		checkNa <- if (isTRUE(includingNull)) {
+			(function(column) {
+				if (is.list(column)) {
+					column <- flatten(column)
+				}
+				map_lgl(column, is.null) | base::is.na(column)
+			})
+		} else if (isFALSE(includingNull)) {
+			(function(column) {
+				if (is.list(column)) {
+					column <- flatten(column)
+				}
+				base::is.na(column)
+			})
+		} else {
+			stop("Invalid arguments: simultaneousNa")
+		}
+
+		naDataFrame <- dataFrame %>% mutate(across(.cols = everything(), .fns = checkNa))
+		firstColumn <- naDataFrame[[1L]]
+		successful <- TRUE
+		for (column in naDataFrame %>% select(-1L)) {
+			if (!isTRUE(all(firstColumn == column))) {
+				successful <- FALSE
+				break
+			}
+		}
+		if (!isTRUE(successful)) {
+			errorMessages <-
+				dataFrame %>%
+				mutate(across(.cols = everything(), .fns = checkNa)) %>%
+				rename_with(~ str_c("prefix_", .)) %>%
+				rowwise() %>%
+				transmute(
+					na = c_across(starts_with("prefix_")) %>% which() %>% str_c(collapse = ", "),
+					notNa = c_across(starts_with("prefix_")) %>% not() %>% which() %>% str_c(collapse = ", "),
+				) %>%
+				ungroup() %>%
+				mutate(columnIndex = row_number()) %>%
+				transmute(
+					message = if_else(
+						na == "" | notNa == "",
+						NA_character_,
+						glue::glue_safe("Column {columnIndex}: NA columns {na}; Non-NA columns {notNa}") %>% as.character()
+					)
+				) %>%
+				filter(!is.na(message)) %>%
+				pull(message) %>%
+				str_c(collapse = "\n")
+			stop(errorMessages)
+		}
+		return(invisible(dataFrame))
+	}
 }
