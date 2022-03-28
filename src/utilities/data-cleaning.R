@@ -90,12 +90,14 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 		if (anyNA(oldMin)) {
 			oldMin <- vectorMin
 		} else if (oldMin > vectorMin) {
-			stop(glue::glue("`oldMin > vectorMin`: `oldMin` {oldMin}, `vectorMin` {vectorMin}"))
+			indices <- which(integerVector == vectorMin) %>% str_c(collapse = ", ")
+			stop(glue::glue_safe("`oldMin > vectorMin`: `oldMin` {oldMin}, `vectorMin` {vectorMin} (`indices` indices)"))
 		}
 		if (anyNA(oldMax)) {
 			oldMax <- vectorMax
 		} else if (oldMax < vectorMax) {
-			stop(glue::glue("`oldMax < vectorMax`: `oldMax` {oldMax}, `vectorMax` {vectorMax}"))
+			indices <- which(integerVector == vectorMin) %>% str_c(collapse = ", ")
+			stop(glue::glue_safe("`oldMax < vectorMax`: `oldMax` {oldMax}, `vectorMax` {vectorMax} (`indices` indices)"))
 		}
 		if (anyNA(min)) {
 			if (anyNA(max)) {
@@ -108,13 +110,13 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 			max <- oldMax + (min - oldMin)
 		}
 		if (oldMin > oldMax) {
-			stop(glue::glue("`oldMin > oldMax`: `oldMin` {oldMin}, `oldMax` {oldMax}"))
+			stop(glue::glue_safe("`oldMin > oldMax`: `oldMin` {oldMin}, `oldMax` {oldMax}"))
 		}
 		if (min > max) {
-			stop(glue::glue("`min > max`: `min` {min}, `max` {max}"))
+			stop(glue::glue_safe("`min > max`: `min` {min}, `max` {max}"))
 		}
 		if (oldMax - oldMin != max - min) {
-			stop(glue::glue("`oldMax - oldMin != max - min`: `oldMin` {oldMin}, `oldMax` {oldMax}, `min` {min}, `max` {max}"))
+			stop(glue::glue_safe("`oldMax - oldMin != max - min`: `oldMin` {oldMin}, `oldMax` {oldMax}, `min` {min}, `max` {max}"))
 		}
 		if (reversed) {
 			max + (oldMin - integerVector)
