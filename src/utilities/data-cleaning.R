@@ -96,7 +96,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 		if (anyNA(oldMax)) {
 			oldMax <- vectorMax
 		} else if (oldMax < vectorMax) {
-			indices <- which(integerVector == vectorMin) %>% str_c(collapse = ", ")
+			indices <- which(integerVector == vectorMax) %>% str_c(collapse = ", ")
 			stop(glue::glue_safe("`oldMax < vectorMax`: `oldMax` {oldMax}, `vectorMax` {vectorMax} (`indices` {indices})"))
 		}
 		if (anyNA(min)) {
