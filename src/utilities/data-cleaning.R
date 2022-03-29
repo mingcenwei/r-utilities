@@ -7,7 +7,7 @@ library(tidyverse)
 if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 	LOCAL_ENVIRONMENT__DATA_CLEANING_R <- new.env()
 
-	summarySavData <- function(savData) {
+	summarySavData <- function(savData, maxNumberOfSampleAnswers = 10L) {
 		convertAndGetType <- function(vector) {
 			if (all(is.na(vector))) {
 				return(list(vector = vector, type = "unknown"))
@@ -18,6 +18,17 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 			} else {
 				return(list(vector = vector, type = typeof(vector)))
 			}
+		}
+		getNonNaUniqueAnswerCountAndSampleAnswers <- function(vector, maxNumberOfSampleAnswers) {
+			stopifnot(is.integer(maxNumberOfSampleAnswers) && length(maxNumberOfSampleAnswers) == 1L)
+			uniqueAnswers <- vector %>% unique() %>% sort(na.last = TRUE)
+			if (anyNA(maxNumberOfSampleAnswers) || maxNumberOfSampleAnswers <= 0L || length(uniqueAnswers) == 0L) {
+				sampleAnswers <- NULL
+			} else {
+				sampleAnswers <- uniqueAnswers[1L:min(length(uniqueAnswers), maxNumberOfSampleAnswers)]
+			}
+			nonNaUniqueAnswerCount <- uniqueAnswers %>% discard(anyNA) %>% length()
+			return(list(sampleAnswers = sampleAnswers, nonNaUniqueAnswerCount = nonNaUniqueAnswerCount))
 		}
 
 		savData %>%
@@ -32,15 +43,17 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 				} else {
 					c(choiceLabels, choiceType) %<-% convertAndGetType(names(choices))
 				}
+				c(sampleAnswers, nonNaUniqueAnswerCount) %<-% getNonNaUniqueAnswerCountAndSampleAnswers(column, maxNumberOfSampleAnswers)
 				tibble_row(
 					columnName,
 					label,
 					type,
 					originalType,
-					uniqueAnswerCount = column %>% unique() %>% length(),
+					nonNaUniqueAnswerCount,
 					naCount = column %>% is.na() %>% sum(),
 					min = (if (is.numeric(column)) {min(column, na.rm = TRUE)} else {NA_integer_}) %>% list(),
 					max = (if (is.numeric(column)) {max(column, na.rm = TRUE)} else {NA_integer_}) %>% list(),
+					sampleAnswers = list(sampleAnswers),
 					choiceType,
 					choiceCount = if (is.null(choices)) {NA_integer_} else {length(choices)},
 					minChoice = (if (is.numeric(choiceLabels)) {min(choiceLabels, na.rm = TRUE)} else {NA_integer_}) %>% list(),
@@ -54,10 +67,11 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 				label,
 				type,
 				originalType,
-				uniqueAnswerCount,
+				nonNaUniqueAnswerCount,
 				naCount,
 				min,
 				max,
+				sampleAnswers,
 				choiceType,
 				choiceCount,
 				minChoice,
