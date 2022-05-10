@@ -51,13 +51,13 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 					originalType,
 					nonNaUniqueAnswerCount,
 					naCount = column %>% is.na() %>% sum(),
-					min = (if (is.numeric(column)) {min(column, na.rm = TRUE)} else {NA_integer_}) %>% list(),
-					max = (if (is.numeric(column)) {max(column, na.rm = TRUE)} else {NA_integer_}) %>% list(),
+					min = (if (is.numeric(column) && !all(is.na(column))) {min(column, na.rm = TRUE)} else {NA_integer_}) %>% list(),
+					max = (if (is.numeric(column) && !all(is.na(column))) {max(column, na.rm = TRUE)} else {NA_integer_}) %>% list(),
 					sampleAnswers = list(sampleAnswers),
 					choiceType,
 					choiceCount = if (is.null(choices)) {NA_integer_} else {length(choices)},
-					minChoice = (if (is.numeric(choiceLabels)) {min(choiceLabels, na.rm = TRUE)} else {NA_integer_}) %>% list(),
-					maxChoice = (if (is.numeric(choiceLabels)) {max(choiceLabels, na.rm = TRUE)} else {NA_integer_}) %>% list(),
+					minChoice = (if (is.numeric(choiceLabels) && !all(is.na(choiceLabels))) {min(choiceLabels, na.rm = TRUE)} else {NA_integer_}) %>% list(),
+					maxChoice = (if (is.numeric(choiceLabels) && !all(is.na(choiceLabels))) {max(choiceLabels, na.rm = TRUE)} else {NA_integer_}) %>% list(),
 					choices = list(choices)
 				)
 			}) %>%
