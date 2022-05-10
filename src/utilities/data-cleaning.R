@@ -35,6 +35,9 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_CLEANING_R", mode = "environment")) {
 			imap(function(column, columnName) {
 				originalType <- typeof(column)
 				label <- column %>% attr("label", exact = TRUE)
+				if (is.null(label)) {
+					label <- NA_character_
+				}
 				choices <- column %>% attr("labels", exact = TRUE)
 				c(column, type) %<-% convertAndGetType(column)
 				originalType <- if_else(originalType == type, NA_character_, originalType)
