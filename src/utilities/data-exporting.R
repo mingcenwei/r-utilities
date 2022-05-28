@@ -174,20 +174,29 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 		function(...,
 				 list = character(),
 				 newNames = NULL,
-				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)")) {
+				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
+				 rSaveRdsNotRdata = FALSE) {
 			namedList <- LOCAL_ENVIRONMENT__DATA_EXPORTING_R$getNamedList(
 				...,
 				list = list,
 				newNames = newNames,
 				env = rlang::caller_env()
 			)
-			save(
-				list = rlang::names2(namedList),
-				file = paste0(filenameWithoutExtension, ".RData"),
-				envir = as.environment(namedList),
-				compress = "xz",
-				compression_level = 9L
-			)
+			if (rSaveRdsNotRdata) {
+				saveRDS(
+					object = namedList,
+					file = paste0(filenameWithoutExtension, "rds"),
+					compress = "xz"
+				)
+			} else {
+				save(
+					list = rlang::names2(namedList),
+					file = paste0(filenameWithoutExtension, ".RData"),
+					envir = as.environment(namedList),
+					compress = "xz",
+					compression_level = 9L
+				)
+			}
 		}
 
 	exportSpss <-
@@ -331,6 +340,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				 list = character(),
 				 newNames = NULL,
 				 filenameWithoutExtension = stop(r"("filenameWithoutExtension" must be specified)"),
+				 rSaveRdsNotRdata = FALSE,
 				 spssTransformer = identity,
 				 excelTransformer = identity,
 				 spssColumnNames = c("{.columnName}", "{.label}", "{.columnName}__{.label}")[1L],
@@ -339,7 +349,8 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				...,
 				list = list,
 				newNames = newNames,
-				filenameWithoutExtension = filenameWithoutExtension
+				filenameWithoutExtension = filenameWithoutExtension,
+				rSaveRdsNotRdata = rSaveRdsNotRdata
 			)
 			exportSpss(
 				...,
