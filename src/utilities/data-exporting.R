@@ -185,7 +185,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 			if (rSaveRdsNotRdata) {
 				saveRDS(
 					object = namedList,
-					file = paste0(filenameWithoutExtension, "rds"),
+					file = paste0(filenameWithoutExtension, ".rds"),
 					compress = "xz"
 				)
 			} else {
