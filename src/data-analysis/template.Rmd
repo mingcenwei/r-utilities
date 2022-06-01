@@ -8,21 +8,16 @@ remove(list = objects(all.names = TRUE)[!(objects(all.names = TRUE) %in% c(
 	"template__RAW_DATA"
 ))])
 
-library(showtext)
-library(ggpubr)
-library(rstatix)
 library(zeallot)
 library(magrittr)
 library(tidyverse)
-
-showtext::showtext_auto()
 ```
 
 ```{r source-scripts}
 projectSource <- (function() {
-	projectRoot <- rprojroot::find_rstudio_root_file()
+	dir_projectRoot <- rprojroot::find_rstudio_root_file()
 	projectSource <- function(relativePath) {
-		source(file.path(projectRoot, relativePath))
+		source(file.path(dir_projectRoot, relativePath))
 	}
 	return(projectSource)
 })()

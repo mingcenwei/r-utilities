@@ -15,9 +15,9 @@ library(tidyverse)
 
 ```{r source-scripts}
 projectSource <- (function() {
-	projectRoot <- rprojroot::find_rstudio_root_file()
+	dir_projectRoot <- rprojroot::find_rstudio_root_file()
 	projectSource <- function(relativePath) {
-		source(file.path(projectRoot, relativePath))
+		source(file.path(dir_projectRoot, relativePath))
 	}
 	return(projectSource)
 })()
@@ -26,7 +26,7 @@ projectSource("src/utilities/index.R")
 
 ```{r import-data}
 for (data in c("user-info", "pre", "middle", "post", "follow-up")) {
-	load(file.path(questionnaireExportDir, paste0(data, ".RData")))
+	load(file.path(dir_questionnaireExport, paste0(data, ".RData")))
 }
 
 common_rawColumnNames <- c("questionnaireId",
@@ -70,7 +70,7 @@ stopifnot(length(rawColumnNames) == length(rawColumnTypes))
 rawScoresDataFrame <-
 	readxl::read_xlsx(
 		path = file.path(
-			getLatestFile(questionnaireDataDir),
+			getLatestFile(dir_questionnaireData),
 			"睡眠状况.xlsx"
 		),
 		sheet = 1,
@@ -278,7 +278,7 @@ labeledDataFrame <-
 template <- labeledDataFrame
 exportData(
 	"template",
-	filenameWithoutExtension = file.path(questionnaireExportDir, "template"),
+	filenameWithoutExtension = file.path(dir_questionnaireExport, "template"),
 	spssTransformer = function(column) {
 		if (all(class(column) == "Period")) {
 			as.numeric(column, "minutes")
