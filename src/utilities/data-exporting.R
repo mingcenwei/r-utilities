@@ -405,28 +405,28 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 		dput(object, control = control) %>% capture.output() %>% str_c(collapse = "")
 	}
 
-	readRData <- function(filename, simpifySingleValue = FALSE) {
+	readRData <- function(filename, simplifySingleValue = FALSE) {
 		isNA <- function(value) {is.logical(value) && length(value) == 1 && is.na(value)}
 
 		data <- new.env()
 		load(filename, envir = data)
 		data <- as.list(data)
-		if (isTRUE(simpifySingleValue)) {
+		if (isTRUE(simplifySingleValue)) {
 			if (length(data) == 1L) {
 				return(data[[1L]])
 			} else {
 				stop(glue::glue("Not single value: {length(data)} values"))
 			}
-		} else if (isFALSE(simpifySingleValue)) {
+		} else if (isFALSE(simplifySingleValue)) {
 			return(data)
-		} else if (isNA(simpifySingleValue)) {
+		} else if (isNA(simplifySingleValue)) {
 			if (length(data) == 1L) {
 				return(data[[1L]])
 			} else {
 				return(data)
 			}
 		} else {
-			stop(glue::glue("`simpifySingleValue` can only be `TRUE`, `FALSE`, or `NA`, not `{serializeToString(simpifySingleValue)}`"))
+			stop(glue::glue("`simplifySingleValue` can only be `TRUE`, `FALSE`, or `NA`, not `{serializeToString(simplifySingleValue)}`"))
 		}
 	}
 }
