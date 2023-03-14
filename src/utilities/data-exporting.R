@@ -400,4 +400,11 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 
 		return(labeledDataFrame)
 	}
+
+	readRData <- function(filename) {
+		data <- new.env()
+		load(filename, envir = data)
+		data <- as.list(data)
+		return(data)
+	}
 }
