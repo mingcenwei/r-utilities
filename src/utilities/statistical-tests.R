@@ -19,7 +19,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 
 		results[["summarytools__dfSummar"]] <-
 			dataFrame %>%
-			mutate(across(.fns = makeKeepLabels(transformer))) %>%
+			mutate(across(.cols = everything(), .fns = makeKeepLabels(transformer))) %>%
 			mutate(across(
 				.cols = where( ~ is(., "Period")),
 				.fns = makeKeepLabels(lubridate::as.duration)
@@ -31,7 +31,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 
 		results[["Hmisc__describe"]] <-
 			dataFrame %>%
-			mutate(across(.fns = makeKeepLabels(transformer))) %>%
+			mutate(across(.cols = everything(), .fns = makeKeepLabels(transformer))) %>%
 			select(-where(is.list)) %>%
 			Hmisc::describe()
 
@@ -41,7 +41,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			)
 			subDataFrame <-
 				dataFrame %>%
-				mutate(across(.fns = makeKeepLabels(transformer))) %>%
+				mutate(across(.cols = everything(), .fns = makeKeepLabels(transformer))) %>%
 				select(where(is.numeric))
 			if (identical(ncol(subDataFrame), 0L)) {
 				rlang::exec(rstatix::get_summary_stats, tibble(x = 0L), !!!args) %>%
@@ -49,7 +49,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 					head(0L)
 			} else {
 				dataFrame %>%
-					mutate(across(.fns = makeKeepLabels(transformer))) %>%
+					mutate(across(.cols = everything(), .fns = makeKeepLabels(transformer))) %>%
 					rlang::exec(rstatix::get_summary_stats, ., !!!args) %>%
 					suppressWarnings()
 			}
@@ -61,7 +61,7 @@ if (!exists("LOCAL_ENVIRONMENT__STATISTICAL_TESTS_R", mode = "environment")) {
 			)
 			dataFrame <-
 				dataFrame %>%
-				mutate(across(.fns = makeKeepLabels(transformer))) %>%
+				mutate(across(.cols = everything(), .fns = makeKeepLabels(transformer))) %>%
 				select(where(is.numeric))
 			if (identical(ncol(dataFrame), 0L)) {
 				rlang::exec(psych::describe, tibble(x = 0L, y = 0L), !!!args) %>%

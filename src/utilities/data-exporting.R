@@ -215,7 +215,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 				map(function(dataFrame) {
 					dataFrame <-
 						dataFrame %>%
-						mutate(across(.fns = makeKeepLabels(transformer))) %>%
+						mutate(across(.cols = everything(), .fns = makeKeepLabels(transformer))) %>%
 						mutate(
 							across(
 								.cols = where(is.list),
@@ -271,7 +271,7 @@ if (!exists("LOCAL_ENVIRONMENT__DATA_EXPORTING_R", mode = "environment")) {
 					stopifnot(name != "..__errors__..")
 					dataFrame <-
 						dataFrame %>%
-						mutate(across(.fns = makeKeepLabels(transformer))) %>%
+						mutate(across(.cols = everything(), .fns = makeKeepLabels(transformer))) %>%
 						mutate(
 							across(
 								.cols = where(is.list),
